@@ -5,3 +5,5 @@
 * Training procedure for CIFAR-10 as described in the paper
 
 ## VGG (https://arxiv.org/abs/1409.1556)
+
+## UNet (https://arxiv.org/abs/1505.04597)
