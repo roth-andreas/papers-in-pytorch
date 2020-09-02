@@ -2,33 +2,25 @@ import torch
 import torch.nn as nn
 
 class UNet(nn.Module):
-    def __init__(self):
+    def __init__(self, feature_sizes=[64,128,256,512,1024]):
         super(UNet, self).__init__()
-        self.contract1 = ContractingBlock(1, 64, pooling=False)
-        self.contract2 = ContractingBlock(64, 128)
-        self.contract3 = ContractingBlock(128, 256)
-        self.contract4 = ContractingBlock(256, 512)
-        self.contract5 = ContractingBlock(512, 1024)
-        self.expand1 = ExpansiveBlock(1024, 512)
-        self.expand2 = ExpansiveBlock(512, 256)
-        self.expand3 = ExpansiveBlock(256, 128)
-        self.expand4 = ExpansiveBlock(128, 64)
+        self.contractors = nn.ModuleList([ContractingBlock(1, feature_sizes[0], pooling=False)])
+        self.expanders = nn.ModuleList()
+        for index in range(len(feature_sizes) - 1):
+            self.contractors.append(ContractingBlock(index, index + 1))
+            self.expanders.append(ExpansiveBlock(feature_sizes[-i], feature_sizes[-(i+1)]))
         self.output = nn.Conv2d(64, 1, 1, 1,0)
         self.init_weights()
 
     def forward(self, inputs):
-        contracted1 = self.contract1(inputs)
-        contracted2 = self.contract2(contracted1) 
-        contracted3 = self.contract3(contracted2)
-        contracted4 = self.contract4(contracted3)
-        contracted5 = self.contract5(contracted4)
+        outputs = [self.contractors[0](inputs)]
+        for layer in self.contractors:
+            outputs += [layer(outputs[-1])]
 
-        expanded1 = self.expand1(contracted5, contracted4)
-        expanded2 = self.expand2(expanded1, contracted3)
-        expanded3 = self.expand3(expanded2, contracted2)
-        expanded4 = self.expand4(expanded3, contracted1)
+        for index, layer in enumerate(self.expanders):
+            outputs += [layer(outputs[-1], outputs[len(self.expanders) - i - 1])]
 
-        return self.output(expanded4)
+        return self.output(outputs[-1])
 
     def init_weights(self):
         for layer in self.modules():
