@@ -8,23 +8,20 @@ class ConvSelfAttention(nn.Module):
     as described in 'Self-Attention Generative Adversarial Networks'
     (https://arxiv.org/abs/1805.08318)
     """
-    def __init__(self, d, d_k=None, d_v=None):
+    def __init__(self, d, d_k=None):
         """
         Initializes the Self Attention Block
         Args:
             d: Dimension of the Input
             d_k: Key Dimension
-            d_v: Value (Output) Dimension
         """
         super(ConvSelfAttention, self).__init__()
         if d_k is None:
             d_k = d
-        if d_v is None:
-            d_v = d_k
         self.attention_weights = nn.Conv2d(d, d_k + d_k + d_k, 1, 1, 0, bias=False)
-        self.value_weights = nn.Conv2d(d_k, d, 1, 1, 0, bias=False)
+        self.output_weights = nn.Conv2d(d_k, d, 1, 1, 0, bias=False)
         self.d_k = d_k
-        self.gamma = 0.5
+        self.gamma = nn.Parameter(torch.zeros(1))
 
     def forward(self, v):
         """
@@ -47,5 +44,5 @@ class ConvSelfAttention(nn.Module):
         beta = torch.exp(s - logsum)
         y = torch.bmm(value, beta)
         y = y.view(bs, self.d_k, width, height)
-        o = self.value_weights(y) * self.gamma + v
+        o = self.output_weights(y) * self.gamma + v
         return o

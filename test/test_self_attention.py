@@ -33,8 +33,17 @@ class MultiheadTest(unittest.TestCase):
         self.assertEqual(target_size, outputs.shape)
 
 class ConvSelfAttentionTest(unittest.TestCase):
-    def test_something(self):
+    def test_basic_shape(self):
         d = 20
+        d_k = 30
+        model = self_attention_conv.ConvSelfAttention(d, d_k)
+        inputs = torch.ones((4, d, 28, 28))
+        outputs = model(inputs)
+        target_size = (4, d, 28, 28)
+        self.assertEqual(target_size, outputs.shape)
+
+    def test_shape(self):
+        d = 1
         d_k = 30
         model = self_attention_conv.ConvSelfAttention(d, d_k)
         inputs = torch.ones((4, d, 28, 28))
