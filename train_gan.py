@@ -8,7 +8,16 @@ import torchvision.utils as utils
 import math
 from tqdm.auto import tqdm
 
+
 def mnist_dataloader(batch_size=64):
+    """
+    Creates a dataloader for the MNIST dataset
+    Args:
+        batch_size: Batch size for the dataloader
+
+    Returns: A dataloader for the MNIST dataset with the batch_size
+
+    """
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
@@ -23,10 +32,31 @@ def mnist_dataloader(batch_size=64):
 
 
 def generate_noise(batch_size, dim):
+    """
+    Generates random noise of shape (batch_size, dim)
+    Args:
+        batch_size: Number of noise vectors to create
+        dim: Dimension of each noise vector
+
+    Returns: Noise Matrix of shape (batch_size, dim)
+
+    """
     return torch.randn((batch_size, dim))
 
 
 def take_disc_step(discriminator, generator, inputs, noise, criterion):
+    """
+    Takes a step for the discriminator and returns the loss
+    Args:
+        discriminator: Discriminator model
+        generator: Generator model
+        inputs: Real inputs for the Discriminator
+        noise: Noise Inputs for the Generator
+        criterion: Function for calculating the discriminator loss, that takes in outputs and targets
+
+    Returns: Single loss value tensor for further use in backpropagation
+
+    """
     fake_inputs = generator(noise).detach()
     fake_outputs = discriminator(fake_inputs)
     fake_targets = torch.zeros_like(fake_outputs)
@@ -38,6 +68,17 @@ def take_disc_step(discriminator, generator, inputs, noise, criterion):
 
 
 def take_gen_step(discriminator, generator, noise, criterion):
+    """
+    Takes a step for the generator and returns the loss
+    Args:
+        discriminator: Discriminator model
+        generator: Generator model
+        noise: Noise matrix as an input to the Generator
+        criterion: Function for calculating the discriminator loss, that takes in outputs and targets
+
+    Returns: Single loss value tensor for further use in backpropagation
+
+    """
     fake_inputs = generator(noise)
     fake_outputs = discriminator(fake_inputs)
     fake_targets = torch.ones_like(fake_outputs)
@@ -46,6 +87,17 @@ def take_gen_step(discriminator, generator, noise, criterion):
 
 
 def show_results(generator, noise, n_results=16, size=(1, 28, 28)):
+    """
+    Shows some generated resutls in a seperate window in a non blocking way
+    Args:
+        generator: Generator model
+        noise: Noise matrix for input to the Generator
+        n_results: Number of results to display
+        size: Size of the resulting images in the form (channels, height, width)
+
+    Returns:
+
+    """
     with torch.no_grad():
         outputs = generator(noise)[:n_results]
     images = utils.make_grid(outputs.view(n_results, *size), nrow=int(math.sqrt(n_results)))
@@ -55,6 +107,11 @@ def show_results(generator, noise, n_results=16, size=(1, 28, 28)):
 
 
 def train():
+    """
+    Trains the gan model with some parameters defined below
+    Returns:
+
+    """
     epochs = 100
     lr = 1e-5
     z_dim = 64
